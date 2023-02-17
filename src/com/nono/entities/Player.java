@@ -14,15 +14,11 @@ import static com.nono.utils.Constants.PlayerConstants.RUNNING;
 
 public class Player extends Entity {
     private BufferedImage[][] animations;
-    private int aniTick, aniIndex, aniSpeed = 15;
-    private int playerAction = RUNNING;
-    private boolean attacking = false;
-    private int playerDir = -1;
-    private boolean isMoving = false;
-    private boolean left, right, up, down;
+    private int aniTick, aniIndex, aniSpeed = 25;
+    private int playerAction = IDLE;
+    private boolean moving = false, attacking = false;
+    private boolean left, up, right, down;
     private float playerSpeed = 2.0f;
-    private int width;
-    private int height;
     private int[][] lvlData;
     private float xDrawOffset = 21 * Game.SCALE;
     private float yDrawOffset = 4 * Game.SCALE;
@@ -30,7 +26,8 @@ public class Player extends Entity {
     public Player(float x, float y, int width, int height) {
         super(x, y, width, height);
         loadAnimations();
-        initHitbox(x, y, 20*Game.SCALE, 28*Game.SCALE);
+        initHitbox(x, y, 20 * Game.SCALE, 28 * Game.SCALE);
+
     }
 
     public void update() {
@@ -40,27 +37,8 @@ public class Player extends Entity {
     }
 
     public void render(Graphics g) {
-//        g.drawImage(animations[playerAction][aniIndex], (int) (hitbox.x - xDrawOffset), (int) (hitbox.y - yDrawOffset), width, height, null);
         g.drawImage(animations[playerAction][aniIndex], (int) (hitbox.x - xDrawOffset), (int) (hitbox.y - yDrawOffset), width, height, null);
         drawHitbox(g);
-    }
-
-    public void loadLvlData(int[][] lvlData) {
-        this.lvlData = lvlData;
-    }
-
-    private void loadAnimations() {
-        BufferedImage img = LoadSave.GetSpriteAtlas(LoadSave.PLAYER_ATLAS);
-
-        animations = new BufferedImage[9][6];
-
-        for (int j = 0; j < animations.length; j++) {
-            for (int i = 0; i < animations[j].length; i++) {
-                animations[j][i] = img.getSubimage(i * 64, j * 40, 64, 40);
-            }
-        }
-
-
     }
 
     private void updateAnimationTick() {
@@ -72,26 +50,24 @@ public class Player extends Entity {
                 aniIndex = 0;
                 attacking = false;
             }
+
         }
+
     }
 
     private void setAnimation() {
-
         int startAni = playerAction;
 
-        if (!isMoving) {
-            playerAction = IDLE;
-        } else {
+        if (moving)
             playerAction = RUNNING;
-        }
+        else
+            playerAction = IDLE;
 
-        if (attacking) {
+        if (attacking)
             playerAction = ATTACK_1;
-        }
 
-        if (startAni != playerAction) {
+        if (startAni != playerAction)
             resetAniTick();
-        }
     }
 
     private void resetAniTick() {
@@ -100,39 +76,56 @@ public class Player extends Entity {
     }
 
     private void updatePos() {
-
-        isMoving = false;
-
+        moving = false;
         if (!left && !right && !up && !down)
             return;
 
-        float xSpeed = 0;
-        float ySpeed = 0;
+        float xSpeed = 0, ySpeed = 0;
 
         if (left && !right)
             xSpeed = -playerSpeed;
         else if (right && !left)
             xSpeed = playerSpeed;
 
-
         if (up && !down)
             ySpeed = -playerSpeed;
         else if (down && !up)
             ySpeed = playerSpeed;
 
-
-//        if (CanMoveHere(x + xSpeed, y + ySpeed, width, height, lvlData)) {
-//            this.x += xSpeed;
-//            this.y += ySpeed;
-//            isMoving = true;
-//        }
+//		if (CanMoveHere(x + xSpeed, y + ySpeed, width, height, lvlData)) {
+//			this.x += xSpeed;
+//			this.y += ySpeed;
+//			moving = true;
+//		}
 
         if (CanMoveHere(hitbox.x + xSpeed, hitbox.y + ySpeed, hitbox.width, hitbox.height, lvlData)) {
             hitbox.x += xSpeed;
             hitbox.y += ySpeed;
-            isMoving = true;
+            moving = true;
         }
 
+    }
+
+    private void loadAnimations() {
+
+        BufferedImage img = LoadSave.GetSpriteAtlas(LoadSave.PLAYER_ATLAS);
+
+        animations = new BufferedImage[9][6];
+        for (int j = 0; j < animations.length; j++)
+            for (int i = 0; i < animations[j].length; i++)
+                animations[j][i] = img.getSubimage(i * 64, j * 40, 64, 40);
+
+    }
+
+    public void loadLvlData(int[][] lvlData) {
+        this.lvlData = lvlData;
+    }
+
+    public void resetDirBooleans() {
+        left = false;
+        right = false;
+        up = false;
+        down = false;
     }
 
     public void setAttacking(boolean attacking) {
@@ -147,20 +140,20 @@ public class Player extends Entity {
         this.left = left;
     }
 
-    public boolean isRight() {
-        return right;
-    }
-
-    public void setRight(boolean right) {
-        this.right = right;
-    }
-
     public boolean isUp() {
         return up;
     }
 
     public void setUp(boolean up) {
         this.up = up;
+    }
+
+    public boolean isRight() {
+        return right;
+    }
+
+    public void setRight(boolean right) {
+        this.right = right;
     }
 
     public boolean isDown() {
@@ -171,10 +164,4 @@ public class Player extends Entity {
         this.down = down;
     }
 
-    public void resetDirBooleans() {
-        left = false;
-        right = false;
-        down = false;
-        up = false;
-    }
 }
